@@ -1,5 +1,7 @@
 import { createLogger, transports, format } from "winston";
 
+import env from "./env.config.js";
+
 const logger = createLogger({
   level: "info",
   format: format.combine(format.timestamp(), format.json()),
@@ -7,7 +9,10 @@ const logger = createLogger({
     new transports.Console({
       format: format.combine(format.simple()),
     }),
-    new transports.File({ dirname: "./src/logs", filename: "app.log" }),
+
+    ...(env.nodeEnv === "development"
+      ? [new transports.File({ dirname: "./src/logs", filename: "app.log" })]
+      : []),
   ],
 });
 
