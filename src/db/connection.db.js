@@ -14,4 +14,14 @@ async function connectDB() {
   }
 }
 
-export { connectDB };
+async function disconnectDB() {
+  try {
+    await mongoose.disconnect();
+    logger.info(`MongoDB database disconnected!`);
+  } catch (error) {
+    logger.error(`Error while closing database connection ${error.message}`);
+    process.exit(1);
+  }
+}
+
+export { connectDB, disconnectDB };
