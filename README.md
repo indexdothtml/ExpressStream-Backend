@@ -1,5 +1,9 @@
 # ExpressStream Backend (scaffold)
 
+## Model
+
+- [Model link](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj)
+
 ## Quickstart
 
 - Install dependencies: `npm install`
