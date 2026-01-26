@@ -8,7 +8,7 @@ import deleteFile from "../utils/deleteFile.utils.js";
 import uploadFileToCloud from "../utils/cloudinaryFileUpload.utils.js";
 
 // Constant imports
-import { emailRegex, passwordRegex } from "../constants.js";
+import { emailRegex, passwordRegex, cookieOptions } from "../constants.js";
 
 // Model imports
 import { User } from "../models/user.models.js";
@@ -136,4 +136,62 @@ const userRegister = asyncHandler(async (req, res) => {
   );
 });
 
-export { userRegister };
+const userLogin = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
+
+  // Validate inputs
+  if (!(username || email) || !password) {
+    return res
+      .status(400)
+      .json(
+        new APIErrorResponse(400, "Required username or email and password."),
+      );
+  }
+
+  // Get the user document from db.
+  const user = await User.findOne({
+    $or: [
+      { username: username?.trim()?.toLowerCase() },
+      { email: email?.trim()?.toLowerCase() },
+    ],
+  });
+
+  if (!user) {
+    return res.status(404).json(new APIErrorResponse(404, "User not found."));
+  }
+
+  // Check password.
+  const isPasswordCorrect = await user.checkPassword(password);
+
+  if (!isPasswordCorrect) {
+    return res
+      .status(401)
+      .json(new APIErrorResponse(401, "Incorrect password."));
+  }
+
+  // Create access and refresh token.
+  const accessToken = user.createAccessToken();
+
+  const refreshToken = user.createRefreshToken();
+
+  // Updating refresh token into database.
+  const updatedUserWithRefreshToken = await User.findByIdAndUpdate(
+    user._id,
+    { $set: { refreshToken } },
+    { new: true, lean: true },
+  ).select("-password");
+
+  // Setting cookies and sending response.
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new APIResponse(200, "User is successfully logged in.", {
+        ...updatedUserWithRefreshToken,
+        accessToken,
+      }),
+    );
+});
+
+export { userRegister, userLogin };

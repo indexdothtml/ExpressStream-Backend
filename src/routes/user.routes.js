@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 // Controller imports
-import { userRegister } from "../controllers/user.controllers.js";
+import { userRegister, userLogin } from "../controllers/user.controllers.js";
 
 // Middleware imports
 import { upload } from "../middlewares/fileUpload.middlewares.js";
@@ -14,7 +14,10 @@ userRouter.route("/register").post(
     { name: "avatarImage", maxCount: 1 },
     { name: "coverImage", maxCount: 1 },
   ]),
-  userRegister
+  userRegister,
 );
+
+// User login route.
+userRouter.route("/login").post(userLogin);
 
 export default userRouter;
